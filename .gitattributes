@@ -1,2 +1,17 @@
+# Default behavior
+* text=auto
+
+# Maven wrapper
 /mvnw text eol=lf
 *.cmd text eol=crlf
+
+# Shell scripts
+*.sh text eol=lf
+
+# Java files
+*.java text
+
+# Properties / config
+*.properties text
+*.yml text
+*.yaml text
