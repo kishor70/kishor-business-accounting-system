@@ -12,4 +12,8 @@ public interface MahajanService{
 
 	Mahajan getMahajanById(Long id);
 	
+	Mahajan updateMahajan(Long id, Mahajan mahajan);
+
+    void deleteMahajan(Long id);
+
 }

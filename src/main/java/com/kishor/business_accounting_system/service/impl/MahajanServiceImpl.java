@@ -33,7 +33,28 @@ public class MahajanServiceImpl implements MahajanService {
 	@Override
 	public Mahajan getMahajanById(Long id) {
 		// TODO Auto-generated method stub
-		return mahajanrepository.findById(id).orElseThrow(null);
+		return mahajanrepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Mahajan not found"));
+	}
+
+	@Override
+	public Mahajan updateMahajan(Long id, Mahajan mahajan) {
+		Mahajan existing = getMahajanById(id);
+
+        existing.setName(mahajan.getName());
+        existing.setPhone(mahajan.getPhone());
+        existing.setAddress(mahajan.getAddress());
+        existing.setBalance(mahajan.getBalance());
+        existing.setPanNumber(mahajan.getPanNumber());
+        existing.setGstNumber(mahajan.getGstNumber());
+
+        return mahajanrepository.save(existing);
+	}
+
+	@Override
+	public void deleteMahajan(Long id) {
+		mahajanrepository.deleteById(id);
+		
 	}
 	
 }

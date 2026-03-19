@@ -30,6 +30,26 @@ public class Mahajan {
     private String address; //Patwatoli
 
     private Double balance; //50000
+    
+    private String panNumber;
+    
+    public String getPanNumber() {
+		return panNumber;
+	}
+
+	public void setPanNumber(String panNumber) {
+		this.panNumber = panNumber;
+	}
+
+	public String getGstNumber() {
+		return gstNumber;
+	}
+
+	public void setGstNumber(String gstNumber) {
+		this.gstNumber = gstNumber;
+	}
+
+	private String gstNumber;
 
 	public Long getId() {
 		return id;
