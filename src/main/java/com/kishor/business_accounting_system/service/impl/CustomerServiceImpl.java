@@ -1,39 +1,52 @@
 package com.kishor.business_accounting_system.service.impl;
 
-
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
 import com.kishor.business_accounting_system.entity.Customer;
 import com.kishor.business_accounting_system.repository.CustomerRepository;
 import com.kishor.business_accounting_system.service.CustomerService;
 
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
 @Service
 public class CustomerServiceImpl implements CustomerService {
-	
-	private final CustomerRepository customerrepository;
-	
-	public CustomerServiceImpl(CustomerRepository customerrepository) {
-		this.customerrepository = customerrepository;
-	}
+
+    private final CustomerRepository repository;
+
+    public CustomerServiceImpl(CustomerRepository repository) {
+        this.repository = repository;
+    }
+
+    public Customer saveCustomer(Customer customer) {
+        return repository.save(customer);
+    }
+
+   
+    public List<Customer> getAllCustomers() {
+        return repository.findAll();
+    }
 
 
-	@Override
-	public Customer saveCustomer(Customer customer) {
-		
-		return customerrepository.save(customer); 
-	}
+    public Customer getCustomerById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+    }
 
-	@Override
-	public List<Customer> getAllCustomers() {
-		
-		return customerrepository.findAll();
-	}
+    
+    public Customer updateCustomer(Long id, Customer customer) {
+        Customer existing = getCustomerById(id);
 
-	@Override
-	public Customer getCustomerById(Long id) {
-		return customerrepository.findById(id).orElseThrow(null);
-	}
-	
+        existing.setName(customer.getName());
+        existing.setPhone(customer.getPhone());
+        existing.setAddress(customer.getAddress());
+        existing.setBalance(customer.getBalance());
+        existing.setPanNumber(customer.getPanNumber());
+        existing.setGstNumber(customer.getGstNumber());
+
+        return repository.save(existing);
+    }
+
+    public void deleteCustomer(Long id) {
+        repository.deleteById(id);
+    }
 }

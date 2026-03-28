@@ -10,13 +10,17 @@ public class Mahajan {
 	
 	public Mahajan() {}
 	
-    public Mahajan(Long id, String name, String phone, String address, Double balance) {
+
+	public Mahajan(Long id, String name, String phone, String address, Double balance, String panNumber,
+			String gstNumber) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.phone = phone;
 		this.address = address;
 		this.balance = balance;
+		this.panNumber = panNumber;
+		this.gstNumber = gstNumber;
 	}
 
 	@Id
@@ -33,6 +37,8 @@ public class Mahajan {
     
     private String panNumber;
     
+    private String gstNumber;
+    
     public String getPanNumber() {
 		return panNumber;
 	}
@@ -48,8 +54,6 @@ public class Mahajan {
 	public void setGstNumber(String gstNumber) {
 		this.gstNumber = gstNumber;
 	}
-
-	private String gstNumber;
 
 	public Long getId() {
 		return id;

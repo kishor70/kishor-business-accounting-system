@@ -10,14 +10,16 @@ public class Customer {
 	
 	public Customer() {}
 
-	
-    public Customer(Long id, String name, String phone, String address, Double balance) {
+	public Customer(Long id, String name, String phone, String address, Double balance, String panNumber,
+			String gstNumber) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.phone = phone;
 		this.address = address;
 		this.balance = balance;
+		this.panNumber = panNumber;
+		this.gstNumber = gstNumber;
 	}
 
 	@Id
@@ -31,7 +33,11 @@ public class Customer {
     private String address; //kolkata
 
     private Double balance; //50000
-
+    
+    private String panNumber;
+    
+    private String gstNumber;
+    
 	public Long getId() {
 		return id;
 	}
@@ -39,6 +45,26 @@ public class Customer {
 	public void setId(Long id) {
 		this.id = id;
 	}
+
+	public String getPanNumber() {
+		return panNumber;
+	}
+
+
+	public void setPanNumber(String panNumber) {
+		this.panNumber = panNumber;
+	}
+
+
+	public String getGstNumber() {
+		return gstNumber;
+	}
+
+
+	public void setGstNumber(String gstNumber) {
+		this.gstNumber = gstNumber;
+	}
+
 
 	public String getName() {
 		return name;
