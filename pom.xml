@@ -23,6 +23,12 @@
     </properties>
 
     <dependencies>
+    
+	<dependency>
+	    <groupId>org.modelmapper</groupId>
+	    <artifactId>modelmapper</artifactId>
+	    <version>3.1.1</version>
+	</dependency>
 
         <!-- Spring Boot Web (includes Tomcat automatically) -->
         <dependency>

@@ -37,7 +37,7 @@ public class Transaction {
 		this.account = account;
 	}
 
-	@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -50,16 +50,18 @@ public class Transaction {
 
     private String description;
 
+    // Only ONE should be used at a time
     @ManyToOne
-    @JoinColumn(name = "customer_id")
+    @JoinColumn(name = "customer_id", nullable = true)
     private Customer customer;
 
     @ManyToOne
-    @JoinColumn(name = "mahajan_id")
+    @JoinColumn(name = "mahajan_id", nullable = true)
     private Mahajan mahajan;
 
+    // Nullable (for udhaar cases)
     @ManyToOne
-    @JoinColumn(name = "account_id")
+    @JoinColumn(name = "account_id", nullable = true)
     private Account account;
 
 	public Long getId() {

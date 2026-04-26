@@ -1,16 +1,17 @@
 package com.kishor.business_accounting_system.service.impl;
 
 import com.kishor.business_accounting_system.dto.TransactionCreateDto;
+import com.kishor.business_accounting_system.dto.TransactionResponseDto;
 import com.kishor.business_accounting_system.dto.TransactionUpdateDto;
 import com.kishor.business_accounting_system.entity.*;
 import com.kishor.business_accounting_system.repository.*;
 import com.kishor.business_accounting_system.service.TransactionService;
 
-import jakarta.transaction.Transactional;
-
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -19,183 +20,248 @@ public class TransactionServiceImpl implements TransactionService {
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;
     private final MahajanRepository mahajanRepository;
+    private final ModelMapper modelMapper;
 
-    public TransactionServiceImpl(TransactionRepository transactionRepository,
-                                  AccountRepository accountRepository,
-                                  CustomerRepository customerRepository,
-                                  MahajanRepository mahajanRepository) {
+    public TransactionServiceImpl(
+            TransactionRepository transactionRepository,
+            AccountRepository accountRepository,
+            CustomerRepository customerRepository,
+            MahajanRepository mahajanRepository,
+            ModelMapper modelMapper) {
 
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
         this.mahajanRepository = mahajanRepository;
+        this.modelMapper = modelMapper;
     }
 
-    // CREATE TRANSACTION
+    // ================= CREATE =================
     @Override
     @Transactional
-    public Transaction saveTransaction(TransactionCreateDto dto) {
+    public TransactionResponseDto saveTransaction(TransactionCreateDto dto) {
 
-    	TransactionCreateDto transaction = new TransactionCreateDto();
+        Transaction t = new Transaction();
 
-        transaction.setType(dto.getType());
-        transaction.setAmount(dto.getAmount());
-        transaction.setDate(dto.getDate());
-        transaction.setDescription(dto.getDescription());
+        t.setType(dto.getType());
+        t.setAmount(dto.getAmount());
+        t.setDate(dto.getDate());
+        t.setDescription(dto.getDescription());
 
-        // ACCOUNT (optional)
         Account account = null;
-
-        if(dto.getAccountId() != null){
-            account = accountRepository.findById(dto.getAccountId())
-                    .orElseThrow(() -> new RuntimeException("Account not found"));
-
-            transaction.setAccount(account);
-        }
-
-        // ================= SALE =================
-        if(dto.getType() == TransactionType.SALE){
-
-            Customer customer = customerRepository.findById(dto.getCustomerId())
-                    .orElseThrow(() -> new RuntimeException("Customer not found"));
-
-            // customer owes money
-            customer.setBalance(customer.getBalance() + dto.getAmount());
-
-            // if customer paid immediately
-            if(account != null){
-            	Double balance = account.getBalance() == null ? 0.0 : account.getBalance();
-
-                account.setBalance(balance + dto.getAmount());
-
-                accountRepository.save(account);
-            }
-            
-            customerRepository.save(customer);
-            transaction.setCustomer(customer);
-        }
-
-        // ================= PURCHASE =================
-        else if(dto.getType() == TransactionType.PURCHASE){
-
-            Mahajan mahajan = mahajanRepository.findById(dto.getMahajanId())
-                    .orElseThrow(() -> new RuntimeException("Mahajan not found"));
-
-            // we owe mahajan money
-            mahajan.setBalance(mahajan.getBalance() + dto.getAmount());
-
-            // if we paid immediately
-            if(account != null){
-                account.setBalance(account.getBalance() - dto.getAmount());
-            }
-
-            mahajanRepository.save(mahajan);
-            transaction.setMahajan(mahajan);
-        }
-
-        // ================= CUSTOMER PAYMENT =================
-        else if(dto.getType() == TransactionType.CUSTOMER_PAYMENT){
-
-            Customer customer = customerRepository.findById(dto.getCustomerId())
-                    .orElseThrow(() -> new RuntimeException("Customer not found"));
-
-            // reduce customer debt
-            customer.setBalance(customer.getBalance() - dto.getAmount());
-
-            if(account != null){
-                account.setBalance(account.getBalance() + dto.getAmount());
-            }
-
-            customerRepository.save(customer);
-            transaction.setCustomer(customer);
-        }
-
-        // ================= MAHAJAN PAYMENT =================
-        else if(dto.getType() == TransactionType.MAHAJAN_PAYMENT){
-
-            Mahajan mahajan = mahajanRepository.findById(dto.getMahajanId())
-                    .orElseThrow(() -> new RuntimeException("Mahajan not found"));
-
-            // reduce mahajan debt
-            mahajan.setBalance(mahajan.getBalance() - dto.getAmount());
-
-            if(account != null){
-                account.setBalance(account.getBalance() - dto.getAmount());
-            }
-
-            mahajanRepository.save(mahajan);
-            transaction.setMahajan(mahajan);
-        }
-
-        // save account only if used
-        if(account != null){
-            accountRepository.save(account);
-        }
-
-        return transactionRepository.save(transaction);
-    }
-    // GET ALL
-    @Override
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.findAll();
-    }
-
-    // GET BY ID
-    @Override
-    public Transaction getTransactionById(Long id) {
-
-        return transactionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
-    }
-
-    // UPDATE
-    @Override
-    public Transaction updateTransaction(Long id, TransactionUpdateDto dto) {
-
-        Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
-
-        transaction.setType(dto.getType());
-        transaction.setAmount(dto.getAmount());
-        transaction.setDate(dto.getDate());
-        transaction.setDescription(dto.getDescription());
+        Customer customer = null;
+        Mahajan mahajan = null;
 
         if (dto.getAccountId() != null) {
-
-            Account account = accountRepository.findById(dto.getAccountId())
+            account = accountRepository.findById(dto.getAccountId())
                     .orElseThrow(() -> new RuntimeException("Account not found"));
-
-            transaction.setAccount(account);
+            t.setAccount(account);
         }
 
         if (dto.getCustomerId() != null) {
-
-            Customer customer = customerRepository.findById(dto.getCustomerId())
+            customer = customerRepository.findById(dto.getCustomerId())
                     .orElseThrow(() -> new RuntimeException("Customer not found"));
-
-            transaction.setCustomer(customer);
-            transaction.setMahajan(null);
+            t.setCustomer(customer);
         }
 
         if (dto.getMahajanId() != null) {
-
-            Mahajan mahajan = mahajanRepository.findById(dto.getMahajanId())
+            mahajan = mahajanRepository.findById(dto.getMahajanId())
                     .orElseThrow(() -> new RuntimeException("Mahajan not found"));
-
-            transaction.setMahajan(mahajan);
-            transaction.setCustomer(null);
+            t.setMahajan(mahajan);
         }
 
-        return transactionRepository.save(transaction);
+        applyTransaction(t.getType(), t.getAmount(), account, customer, mahajan);
+
+        return mapToDto(transactionRepository.save(t));
     }
 
-    // DELETE
+    // ================= GET ALL =================
     @Override
-    public void deleteTransaction(Long id) {
+    public Page<TransactionResponseDto> getAllTransactions(Pageable pageable) {
+        return transactionRepository.findAll(pageable)
+                .map(this::mapToDto);
+    }
 
-        Transaction transaction = transactionRepository.findById(id)
+    // ================= GET BY ID =================
+    @Override
+    public TransactionResponseDto getTransactionById(Long id) {
+        Transaction t = transactionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Transaction not found"));
 
-        transactionRepository.delete(transaction);
+        return mapToDto(t);
+    }
+
+    // ================= UPDATE =================
+    @Override
+    @Transactional
+    public TransactionResponseDto updateTransaction(Long id, TransactionUpdateDto dto) {
+
+        Transaction t = transactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        // 🔥 Reverse old transaction
+        reverseTransaction(t);
+
+        t.setType(dto.getType());
+        t.setAmount(dto.getAmount());
+        t.setDate(dto.getDate());
+        t.setDescription(dto.getDescription());
+
+        Account account = null;
+        Customer customer = null;
+        Mahajan mahajan = null;
+
+        if (dto.getAccountId() != null) {
+            account = accountRepository.findById(dto.getAccountId())
+                    .orElseThrow(() -> new RuntimeException("Account not found"));
+            t.setAccount(account);
+        } else {
+            t.setAccount(null);
+        }
+
+        if (dto.getCustomerId() != null) {
+            customer = customerRepository.findById(dto.getCustomerId())
+                    .orElseThrow(() -> new RuntimeException("Customer not found"));
+            t.setCustomer(customer);
+            t.setMahajan(null);
+        }
+
+        if (dto.getMahajanId() != null) {
+            mahajan = mahajanRepository.findById(dto.getMahajanId())
+                    .orElseThrow(() -> new RuntimeException("Mahajan not found"));
+            t.setMahajan(mahajan);
+            t.setCustomer(null);
+        }
+
+        applyTransaction(t.getType(), t.getAmount(), account, customer, mahajan);
+
+        return mapToDto(transactionRepository.save(t));
+    }
+
+    // ================= DELETE =================
+    @Override
+    @Transactional
+    public void deleteTransaction(Long id) {
+
+        Transaction t = transactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        reverseTransaction(t);
+
+        transactionRepository.delete(t);
+    }
+
+    // ================= APPLY BUSINESS LOGIC =================
+    private void applyTransaction(
+            TransactionType type,
+            Double amount,
+            Account account,
+            Customer customer,
+            Mahajan mahajan
+    ) {
+
+        switch (type) {
+
+            case SALE:
+                if (customer == null)
+                    throw new RuntimeException("Customer required for SALE");
+
+                customer.setBalance(customer.getBalance() + amount);
+                customerRepository.save(customer);
+
+                if (account != null) {
+                    account.setBalance(account.getBalance() + amount);
+                    accountRepository.save(account);
+                }
+                break;
+
+            case PURCHASE:
+                if (mahajan == null)
+                    throw new RuntimeException("Mahajan required for PURCHASE");
+
+                mahajan.setBalance(mahajan.getBalance() + amount);
+                mahajanRepository.save(mahajan);
+
+                if (account != null) {
+                    account.setBalance(account.getBalance() - amount);
+                    accountRepository.save(account);
+                }
+                break;
+
+            case RECEIVE:
+                if (customer != null) {
+                    customer.setBalance(customer.getBalance() - amount);
+                    customerRepository.save(customer);
+                }
+
+                if (mahajan != null) {
+                    mahajan.setBalance(mahajan.getBalance() - amount);
+                    mahajanRepository.save(mahajan);
+                }
+
+                if (account != null) {
+                    account.setBalance(account.getBalance() + amount);
+                    accountRepository.save(account);
+                }
+                break;
+
+            case PAY:
+                if (mahajan != null) {
+                    mahajan.setBalance(mahajan.getBalance() - amount);
+                    mahajanRepository.save(mahajan);
+                }
+
+                if (account != null) {
+                    account.setBalance(account.getBalance() - amount);
+                    accountRepository.save(account);
+                }
+                break;
+
+            case EXPENSE:
+                if (customer != null || mahajan != null)
+                    throw new RuntimeException("Expense cannot have customer or mahajan");
+
+                if (account != null) {
+                    account.setBalance(account.getBalance() - amount);
+                    accountRepository.save(account);
+                }
+                break;
+        }
+    }
+
+    // ================= REVERSE =================
+    private void reverseTransaction(Transaction t) {
+
+        applyTransaction(
+                t.getType(),
+                -t.getAmount(),
+                t.getAccount(),
+                t.getCustomer(),
+                t.getMahajan()
+        );
+    }
+
+    // ================= DTO MAPPING =================
+    private TransactionResponseDto mapToDto(Transaction t) {
+
+        TransactionResponseDto dto =
+                modelMapper.map(t, TransactionResponseDto.class);
+
+        if (t.getAccount() != null) {
+            dto.setId(t.getAccount().getId());
+            dto.setAccountName(t.getAccount().getName());
+        }
+
+        if (t.getCustomer() != null) {
+            dto.setId(t.getCustomer().getId());
+            dto.setCustomerName(t.getCustomer().getName());
+        }
+
+        if (t.getMahajan() != null) {
+            dto.setId(t.getMahajan().getId());
+            dto.setMahajanName(t.getMahajan().getName());
+        }
+
+        return dto;
     }
 }

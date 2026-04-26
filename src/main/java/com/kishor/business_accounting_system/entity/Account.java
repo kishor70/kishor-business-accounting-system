@@ -65,5 +65,11 @@ public class Account {
 		this.balance = balance;
 	}
 
+
+	public String getName() {
+		// TODO Auto-generated method stub
+		return accountName;
+	}
+
 	
 }

@@ -1,21 +1,21 @@
 package com.kishor.business_accounting_system.service;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.kishor.business_accounting_system.dto.TransactionCreateDto;
 import com.kishor.business_accounting_system.dto.TransactionResponseDto;
 import com.kishor.business_accounting_system.dto.TransactionUpdateDto;
-import com.kishor.business_accounting_system.entity.Transaction;
 
 public interface TransactionService {
 
-    Transaction saveTransaction(TransactionCreateDto dto);
+    TransactionResponseDto saveTransaction(TransactionCreateDto dto);
 
-    List<TransactionResponseDto> getAllTransactions();
+    Page<TransactionResponseDto> getAllTransactions(Pageable pageable);
 
-    Transaction getTransactionById(Long id);
+    TransactionResponseDto getTransactionById(Long id);
 
-    Transaction updateTransaction(Long id, TransactionUpdateDto dto);
+    TransactionResponseDto updateTransaction(Long id, TransactionUpdateDto dto);
 
     void deleteTransaction(Long id);
 }

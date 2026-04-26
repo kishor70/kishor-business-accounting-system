@@ -8,23 +8,6 @@ import lombok.Data;
 
 public class TransactionUpdateDto {
 	
-	
-
-    public TransactionUpdateDto(Long id, TransactionType type, Double amount, LocalDate date, String description,
-			Long accountId, Long customerId, Long mahajanId) {
-		super();
-		this.id = id;
-		this.type = type;
-		this.amount = amount;
-		this.date = date;
-		this.description = description;
-		this.accountId = accountId;
-		this.customerId = customerId;
-		this.mahajanId = mahajanId;
-	}
-
-	private Long id;
-
     private TransactionType type;
 
     private Double amount;
@@ -38,14 +21,12 @@ public class TransactionUpdateDto {
     private Long customerId;
 
     private Long mahajanId;
+	
 
-	public Long getId() {
-		return id;
-	}
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+
+
+
 
 	public TransactionType getType() {
 		return type;
@@ -102,6 +83,23 @@ public class TransactionUpdateDto {
 	public void setMahajanId(Long mahajanId) {
 		this.mahajanId = mahajanId;
 	}
+	
+	
+	
+
+    public TransactionUpdateDto( TransactionType type, Double amount, LocalDate date, String description,
+			Long accountId, Long customerId, Long mahajanId) {
+		super();
+		
+		this.type = type;
+		this.amount = amount;
+		this.date = date;
+		this.description = description;
+		this.accountId = accountId;
+		this.customerId = customerId;
+		this.mahajanId = mahajanId;
+	}
+
     
     
 }
